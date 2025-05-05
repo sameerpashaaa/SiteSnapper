@@ -124,9 +124,36 @@ if __name__ == "__main__":
     domain = urllib.parse.urlparse(target_url).netloc
     folder_name = domain.replace('.', '_')
     
-    # Set output directory
-    output_directory = os.path.join(r"c:\Users\Sameer\OneDrive\Desktop\python projects\cloned_website", folder_name)
+    # Ask user for output directory or use current directory
+    use_current = input("Save to current directory? (y/n): ").lower() == 'y'
+    
+    if use_current:
+        # Use current directory + folder name
+        output_directory = os.path.join(os.getcwd(), folder_name)
+    else:
+        # Ask for custom directory
+        custom_dir = input("Enter output directory path (or press Enter for Desktop): ")
+        if custom_dir:
+            output_directory = os.path.join(custom_dir, folder_name)
+        else:
+            # Use Desktop as default
+            desktop = os.path.join(os.path.expanduser("~"), "Desktop")
+            output_directory = os.path.join(desktop, folder_name)
     
     print(f"Cloning {target_url} to {output_directory}...")
     clone_website(target_url, output_directory)
     print("Website cloning process completed!")
+    
+    # Create a batch file to start a local server
+    server_batch = os.path.join(output_directory, "start_server.bat")
+    with open(server_batch, 'w') as f:
+        f.write(f'@echo off\n')
+        f.write(f'echo Starting local server for {domain}...\n')
+        f.write(f'cd "{output_directory}"\n')
+        f.write(f'echo Server running at http://localhost:8000\n')
+        f.write(f'echo Press Ctrl+C to stop the server\n')
+        f.write(f'start "" "http://localhost:8000"\n')
+        f.write(f'python -m http.server 8000\n')
+    
+    print(f"Created server batch file at {server_batch}")
+    print("Run this batch file to view the cloned website locally.")
